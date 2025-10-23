@@ -15,7 +15,7 @@
         }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1f2937; /* Gray-800: 丸だった時の背景色を維持 */
+            background-color: #1f2937; /* Gray-800 */
             color: #f3f4f6; /* Gray-100 */
         }
         
@@ -29,14 +29,13 @@
             box-shadow: none;
         }
         
-        /* 結果表示用の画像コンテナスタイル */
+        /* 画像コンテナスタイル: 正方形を強制 (padding-topハック) */
         #image-container {
             width: 100%;
-            /* **【強制修正】** padding-topでアスペクト比1:1 (正方形) を設定 */
             padding-top: 100%; 
             position: relative; 
             margin-bottom: 1.5rem;
-            border-radius: 0.75rem; /* rounded-xl (丸角) を維持 */
+            border-radius: 0.75rem; 
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             overflow: hidden; 
         }
@@ -48,25 +47,29 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* object-fit: coverで、画像がコンテナ（正方形）全体を覆うようにトリミングされます */
             object-fit: cover; 
+            /* 初期状態は非表示 */
+            opacity: 0; 
+            transition: opacity 1.5s ease; /* 1.5秒かけてゆっくりフェードイン */
         }
-        
+
         /* 結果テキストのアニメーション */
         .result-text {
             opacity: 0;
             transform: translateY(10px);
-            animation: fadeInSlideUp 0.6s ease-out forwards;
+            /* 結果表示時、0.6秒かけてアニメーション */
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
-        @keyframes fadeInSlideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        
+        /* 結果表示時、アクティブにするクラス */
+        .show-result {
+             opacity: 1 !important;
+             transform: translateY(0) !important;
+        }
+        
+        /* 画像表示時、アクティブにするクラス */
+        .show-image {
+             opacity: 1 !important;
         }
     </style>
 </head>
@@ -82,19 +85,18 @@
         </p>
 
         <!-- 画像表示エリア (正方形コンテナ) -->
-        <div id="image-container" class="transition-opacity duration-500">
+        <div id="image-container">
              <!-- 画像URLは前回と同じものを利用 -->
              <img id="placeholder-image" 
                  src="https://raw.githubusercontent.com/elephants19660612-del/omikuji-generator/main/kanaboon_jackintour_2.png" 
                  alt="推しグループのイメージ画像" 
-                 class="shadow-2xl opacity-0" 
              >
         </div>
 
         <!-- 結果表示エリア -->
         <div id="result-area" class="w-full mb-8 min-h-[100px]">
-            <p id="result-text" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-500 result-text" style="opacity: 0;">
-                
+            <p id="result-text" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-500 result-text">
+                <!-- 結果はここに表示されます -->
             </p>
         </div>
 
@@ -126,7 +128,6 @@
         // 要素の取得
         const drawButton = document.getElementById('draw-button');
         const resultTextElement = document.getElementById('result-text');
-        const imageContainer = document.getElementById('image-container');
         const imageElement = document.getElementById('placeholder-image');
         
         // 合計の重みを計算
@@ -151,47 +152,42 @@
             drawButton.disabled = true;
             drawButton.textContent = '運勢を占っています...';
             
-            // 結果テキストと画像を一度非表示にする
-            resultTextElement.style.opacity = '0';
-            imageElement.classList.remove('opacity-100');
-            imageElement.classList.add('opacity-0');
+            // 結果テキストと画像をリセット（アニメーションクラスを削除し非表示状態に戻す）
+            resultTextElement.classList.remove('show-result');
+            imageElement.classList.remove('show-image');
 
-            // 1秒後に結果を表示
+            // 結果の抽選
+            const result = getWeightedRandomResult();
+
+            // わずかなディレイ後に結果を更新・表示 (CSSトランジションでアニメーション)
+            // ※ setTimeout(..., 0) は、ブラウザに描画処理を挟むタイミングを与えるため、
+            //    前のリセットが確実に適用されるようにするテクニックです。
             setTimeout(() => {
-                const result = getWeightedRandomResult();
-
                 // 結果テキストを更新
                 resultTextElement.innerHTML = `
                     <span class="block">${result.result}</span>
                     <span class="block text-xl font-normal text-gray-300 mt-2">${result.detail}</span>
                 `;
                 
-                // 画像を更新（画像はここではすべて同じURLですが、将来的に結果によって変えられます）
-                // imageElement.src = result.image; // 将来的に画像を変えるためのコード
-                
-                // 結果テキストと画像をフェードイン
-                resultTextElement.style.opacity = '1';
-                imageElement.classList.remove('opacity-0');
-                imageElement.classList.add('opacity-100');
+                // 画像とテキストを表示状態に切り替える（CSSトランジションが発動）
+                resultTextElement.classList.add('show-result');
+                imageElement.classList.add('show-image');
 
-
-                // ボタンの表示を戻す
+                // ボタンの表示を戻し、有効化
                 drawButton.disabled = false;
                 drawButton.textContent = 'もう一度引く';
-                
-            }, 1000); // 1秒間のディレイ
+            }, 50); // 50msのわずかなディレイ
+
         }
 
         // イベントリスナーを設定
         drawButton.addEventListener('click', drawOmikuji);
 
-        // 初回ロード時に画像をフェードイン
+        // 初回ロード時に画像をゆっくり表示する
         document.addEventListener('DOMContentLoaded', () => {
-             // 初回ロード時はまだ結果がないためテキストは非表示
-             resultTextElement.style.opacity = '0';
-             // 画像をゆっくり表示
-             imageElement.classList.add('opacity-100');
-             imageContainer.classList.add('transition-opacity', 'duration-500'); 
+             // 初回ロード時はまだ結果がないためテキストはそのまま非表示
+             // 画像をゆっくり表示 (CSSトランジションで1.5秒フェードイン)
+             imageElement.classList.add('show-image');
         });
 
     </script>
