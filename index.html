@@ -18,9 +18,8 @@
             background-color: #1f2937; /* Gray-800 */
             color: #f3f4f6; /* Gray-100 */
         }
-        .container {
-            min-height: 100vh;
-        }
+        /* NOTE: スクロール問題を修正するため、.containerから高さを指定するCSSを削除しました */
+        
         /* おみくじボタンのスタイル */
         #draw-button {
             transition: all 0.15s ease;
@@ -31,12 +30,14 @@
             box-shadow: none;
         }
         
-        /* 結果表示用の画像スタイル - ここを正方形に修正しました！ */
+        /* 結果表示用の画像スタイル - ここを正方形に修正！ */
         #placeholder-image {
             width: 100%; /* 親要素の幅いっぱいに */
+            /* ↓↓↓ ここから正方形化CSS ↓↓↓ */
             aspect-ratio: 1 / 1; /* 縦横比を1:1に強制 */
             object-fit: cover; /* 画像がはみ出る場合は中央からトリミング */
-            max-height: 500px; /* 最大高さを設定 (PCなどで大きくなりすぎないように) */
+            /* ↑↑↑ ここまで正方形化CSS ↑↑↑ */
+            max-height: 500px; 
             margin-bottom: 1.5rem;
             border-radius: 0.75rem; /* rounded-xl */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -62,6 +63,7 @@
 </head>
 <body class="p-4 sm:p-8">
     
+    <!-- min-h-screenを削除し、コンテンツが画面に収まるように調整 -->
     <div class="container max-w-lg mx-auto flex flex-col items-center justify-center text-center">
         <!-- ヘッダー -->
         <h1 class="text-4xl font-extrabold mb-8 text-pink-400">
