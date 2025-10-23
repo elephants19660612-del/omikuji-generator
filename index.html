@@ -15,10 +15,9 @@
         }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1f2937; /* Gray-800 */
+            background-color: #1f2937; /* Gray-800: 丸だった時の背景色を維持 */
             color: #f3f4f6; /* Gray-100 */
         }
-        /* NOTE: スクロール問題を修正するため、.containerから高さを指定するCSSを削除しました */
         
         /* おみくじボタンのスタイル */
         #draw-button {
@@ -30,17 +29,27 @@
             box-shadow: none;
         }
         
-        /* 結果表示用の画像スタイル - ここを正方形に修正！ */
-        #placeholder-image {
-            width: 100%; /* 親要素の幅いっぱいに */
-            /* ↓↓↓ ここから正方形化CSS ↓↓↓ */
-            aspect-ratio: 1 / 1; /* 縦横比を1:1に強制 */
-            object-fit: cover; /* 画像がはみ出る場合は中央からトリミング */
-            /* ↑↑↑ ここまで正方形化CSS ↑↑↑ */
-            max-height: 500px; 
+        /* 結果表示用の画像コンテナスタイル */
+        #image-container {
+            width: 100%;
+            /* 重要な修正点: padding-topでアスペクト比1:1 (正方形) を設定 */
+            padding-top: 100%; 
+            position: relative; /* 子要素（画像）を絶対位置で配置するため */
             margin-bottom: 1.5rem;
-            border-radius: 0.75rem; /* rounded-xl */
+            border-radius: 0.75rem; /* rounded-xl (丸角) を維持 */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            overflow: hidden; /* 子要素がはみ出さないように */
+        }
+
+        /* 画像そのもののスタイル */
+        #placeholder-image {
+            position: absolute; /* 親要素のコンテナにフィットさせる */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* object-coverで画像をトリミングし、コンテナ全体を覆う */
+            object-fit: cover; 
         }
         
         /* 結果テキストのアニメーション */
@@ -63,7 +72,6 @@
 </head>
 <body class="p-4 sm:p-8">
     
-    <!-- min-h-screenを削除し、コンテンツが画面に収まるように調整 -->
     <div class="container max-w-lg mx-auto flex flex-col items-center justify-center text-center">
         <!-- ヘッダー -->
         <h1 class="text-4xl font-extrabold mb-8 text-pink-400">
@@ -73,12 +81,14 @@
             ボタンを押して、今日の運勢を占おう！
         </p>
 
-        <!-- 画像表示エリア -->
-        <img id="placeholder-image" 
-             src="https://raw.githubusercontent.com/elephants19660612-del/omikuji-generator/main/kanaboon_jackintour_2.png" 
-             alt="推しグループのイメージ画像" 
-             class="w-full h-auto object-cover rounded-xl shadow-2xl transition-opacity duration-500"
-        >
+        <!-- 画像表示エリア (正方形コンテナ) -->
+        <div id="image-container" class="transition-opacity duration-500">
+             <img id="placeholder-image" 
+                 src="https://raw.githubusercontent.com/elephants19660612-del/omikuji-generator/main/kanaboon_jackintour_2.png" 
+                 alt="推しグループのイメージ画像" 
+                 class="shadow-2xl opacity-0" 
+             >
+        </div>
 
         <!-- 結果表示エリア -->
         <div id="result-area" class="w-full mb-8 min-h-[100px]">
@@ -97,7 +107,6 @@
 
     <script>
         // おみくじの結果データ
-        // 確率の重み付け (weight) を設定
         const omikujiResults = [
             // 大吉
             { result: "大吉！", detail: "今日のあなたは最高潮の運勢！推しとの絆が深まる予感...", weight: 30, image: "https://raw.githubusercontent.com/elephants19660612-del/omikuji-generator/main/kanaboon_jackintour_2.png" },
@@ -116,6 +125,7 @@
         // 要素の取得
         const drawButton = document.getElementById('draw-button');
         const resultTextElement = document.getElementById('result-text');
+        const imageContainer = document.getElementById('image-container');
         const imageElement = document.getElementById('placeholder-image');
         
         // 合計の重みを計算
@@ -140,10 +150,10 @@
             drawButton.disabled = true;
             drawButton.textContent = '運勢を占っています...';
             
-            // 結果テキストと画像を一度非表示にするアニメーション
+            // 結果テキストと画像を一度非表示にする
             resultTextElement.style.opacity = '0';
-            imageElement.classList.remove('transition-opacity', 'duration-500'); // 一時的にトランジションを削除
-            imageElement.style.opacity = '0'; 
+            imageElement.classList.remove('opacity-100');
+            imageElement.classList.add('opacity-0');
 
             // 1秒後に結果を表示
             setTimeout(() => {
@@ -156,12 +166,13 @@
                 `;
                 
                 // 画像を更新（画像はここではすべて同じURLですが、将来的に結果によって変えられます）
-                // NOTE: imageElement.src = result.image; // 将来的に画像を変えるためのコード
+                // imageElement.src = result.image; // 将来的に画像を変えるためのコード
                 
                 // 結果テキストと画像をフェードイン
                 resultTextElement.style.opacity = '1';
-                imageElement.classList.add('transition-opacity', 'duration-500'); // 再度トランジションを設定
-                imageElement.style.opacity = '1'; 
+                imageElement.classList.remove('opacity-0');
+                imageElement.classList.add('opacity-100');
+
 
                 // ボタンの表示を戻す
                 drawButton.disabled = false;
@@ -178,7 +189,8 @@
              // 初回ロード時はまだ結果がないためテキストは非表示
              resultTextElement.style.opacity = '0';
              // 画像をゆっくり表示
-             imageElement.style.opacity = '1';
+             imageElement.classList.add('opacity-100');
+             imageContainer.classList.add('transition-opacity', 'duration-500'); 
         });
 
     </script>
