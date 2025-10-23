@@ -32,6 +32,7 @@
         /* 画像コンテナスタイル: 正方形を強制 (padding-topハック) */
         #image-container {
             width: 100%;
+            /* **ここが正方形にするための最も重要なCSSです** */
             padding-top: 100%; 
             position: relative; 
             margin-bottom: 1.5rem;
@@ -160,8 +161,6 @@
             const result = getWeightedRandomResult();
 
             // わずかなディレイ後に結果を更新・表示 (CSSトランジションでアニメーション)
-            // ※ setTimeout(..., 0) は、ブラウザに描画処理を挟むタイミングを与えるため、
-            //    前のリセットが確実に適用されるようにするテクニックです。
             setTimeout(() => {
                 // 結果テキストを更新
                 resultTextElement.innerHTML = `
