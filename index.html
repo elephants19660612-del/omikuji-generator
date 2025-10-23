@@ -32,23 +32,23 @@
         /* 結果表示用の画像コンテナスタイル */
         #image-container {
             width: 100%;
-            /* 重要な修正点: padding-topでアスペクト比1:1 (正方形) を設定 */
+            /* **【強制修正】** padding-topでアスペクト比1:1 (正方形) を設定 */
             padding-top: 100%; 
-            position: relative; /* 子要素（画像）を絶対位置で配置するため */
+            position: relative; 
             margin-bottom: 1.5rem;
             border-radius: 0.75rem; /* rounded-xl (丸角) を維持 */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            overflow: hidden; /* 子要素がはみ出さないように */
+            overflow: hidden; 
         }
 
         /* 画像そのもののスタイル */
         #placeholder-image {
-            position: absolute; /* 親要素のコンテナにフィットさせる */
+            position: absolute; 
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            /* object-coverで画像をトリミングし、コンテナ全体を覆う */
+            /* object-fit: coverで、画像がコンテナ（正方形）全体を覆うようにトリミングされます */
             object-fit: cover; 
         }
         
@@ -83,6 +83,7 @@
 
         <!-- 画像表示エリア (正方形コンテナ) -->
         <div id="image-container" class="transition-opacity duration-500">
+             <!-- 画像URLは前回と同じものを利用 -->
              <img id="placeholder-image" 
                  src="https://raw.githubusercontent.com/elephants19660612-del/omikuji-generator/main/kanaboon_jackintour_2.png" 
                  alt="推しグループのイメージ画像" 
