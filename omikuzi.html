@@ -1,0 +1,99 @@
+
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&display=swap');
+  body {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    background-color: #f7f3f9; /* 推しカラーに合わせる */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+</style>
+
+<div id="app" class="w-full max-w-md bg-white p-6 md:p-8 rounded-3xl shadow-2xl transition-all duration-500 transform scale-100">
+  <!-- タイトル -->
+  <h1 class="text-3xl text-center font-bold text-pink-600 mb-6 border-b-2 border-pink-200 pb-2">
+    今日の運勢は？推し活おみくじ！
+  </h1>
+
+  <!-- 結果表示エリア -->
+  <div id="result-display" class="text-center">
+    <!-- 初期状態：ボタンを表示 -->
+    <p id="initial-message" class="text-lg text-gray-600 mb-8">
+      タップして、推しからのメッセージを受け取ってね！
+    </p>
+    <button id="draw-button" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+      おみくじを引く
+    </button>
+  </div>
+</div>
+
+<script>
+  // NFCタグをかざした瞬間に「おみくじを引く」処理を行うための処理
+  // ユーザーが手動でボタンを押す動作を求める設計です。
+
+  // --- 🌟 結果のカスタマイズはここを編集！ 🌟 ---
+  // 重み（出現率）を設定しています。数字が大きいほど出やすいです。
+  const results = [
+    { label: "🌟 大大大吉 🌟", message: "今日のライブは神席確定！推しと目が合っちゃうかも！", color: "text-red-600", weight: 1 },
+    { label: "✨ 大吉 ✨", message: "ファンサもレスももらえるかも！？全力で楽しもう！", color: "text-yellow-600", weight: 3 },
+    { label: "💖 中吉 💖", message: "会場に着くまでにいいことがあるかも。今日は絶好の推し活日和！", color: "text-pink-500", weight: 6 },
+    { label: "🍀 小吉 🍀", message: "開演前に美味しいもの食べてパワーチャージしてね！", color: "text-green-500", weight: 5 },
+    { label: "🌈 吉 🌈", message: "帰り道は推しの曲を聴いて余韻に浸ろう！また次も会えるよ！", color: "text-blue-500", weight: 4 }
+    // 自由に結果を追加・編集してください！
+  ];
+  // ----------------------------------------------
+
+  const drawButton = document.getElementById('draw-button');
+  const resultDisplay = document.getElementById('result-display');
+  const appContainer = document.getElementById('app');
+
+  // 重み付きでランダムに結果を選ぶ関数
+  function getWeightedRandomResult() {
+    let totalWeight = results.reduce((sum, item) => sum + item.weight, 0);
+    let randomNum = Math.random() * totalWeight;
+
+    for (const result of results) {
+      if (randomNum < result.weight) {
+        return result;
+      }
+      randomNum -= result.weight;
+    }
+  }
+
+  // おみくじを引く処理
+  function drawOmikuji() {
+    const selectedResult = getWeightedRandomResult();
+
+    // ボタンを非表示にし、結果を表示
+    resultDisplay.innerHTML = `
+      <p class="text-xl text-gray-700 mb-4 animate-pulse">結果発表...</p>
+    `;
+
+    // 演出のため少し遅延させて結果を表示
+    setTimeout(() => {
+      appContainer.classList.add('animate-bounce'); // 画面を少し揺らす演出
+    }, 500);
+
+    setTimeout(() => {
+      appContainer.classList.remove('animate-bounce');
+
+      resultDisplay.innerHTML = `
+        <div class="p-6 border-4 border-dashed border-pink-400 bg-pink-50 rounded-2xl mb-6">
+          <h2 class="text-4xl md:text-5xl font-extrabold mb-3 ${selectedResult.color}">
+            ${selectedResult.label}
+          </h2>
+          <p class="text-lg md:text-xl text-gray-800 leading-relaxed">${selectedResult.message}</p>
+        </div>
+        <p class="text-sm text-gray-500 mt-4">この画面をスクリーンショットして、素敵な一日を過ごしてね！</p>
+      `;
+    }, 1500); // 1.5秒後に結果を表示
+  }
+
+  // イベントリスナーを設定
+  drawButton.addEventListener('click', drawOmikuji);
+</script>
